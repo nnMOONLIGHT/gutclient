@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Design Presentation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0c0914;
+            --surface-color: #161224;
+            --surface-hover: #211b36;
+            --text-main: #f3f0ff;
+            --text-muted: #9b93b8;
+            --accent: #8b5cf6;
+            --accent-hover: #7c3aed;
+            --accent-glow: rgba(139, 92, 246, 0.25);
+            --border-color: #2a2242;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --card-bg: #120e1f;
+        }
+
+        [data-theme="light"] {
+            --bg-color: #f8f6fc;
+            --surface-color: #ffffff;
+            --surface-hover: #f1edfa;
+            --text-main: #140d24;
+            --text-muted: #6b6187;
+            --accent: #7c3aed;
+            --accent-hover: #6d28d9;
+            --accent-glow: rgba(124, 58, 237, 0.15);
+            --border-color: #e2daf0;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --card-bg: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none !important;
+            -webkit-user-select: none !important;
+            -webkit-touch-callout: none !important;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Защитный оверлей поверх картинок */
+        .secure-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        .secure-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 10;
+            background: transparent;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--surface-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-family: 'Unbounded', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn {
+            background-color: var(--surface-hover);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            border-color: var(--accent);
+            background-color: var(--accent-glow);
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: #ffffff;
+            border-color: var(--accent);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+            border-color: var(--accent-hover);
+        }
+
+        main {
+            flex: 1;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .project-info {
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .project-info h1 {
+            font-family: 'Unbounded', sans-serif;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .project-info p {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 30px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px var(--accent-glow);
+            border-color: var(--accent);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--surface-color);
+        }
+
+        .card-number {
+            font-family: 'Unbounded', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--accent);
+            background: var(--accent-glow);
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .card-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 180px;
+        }
+
+        .card-media {
+            width: 100%;
+            height: 260px;
+            background-color: var(--surface-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-media img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 15px;
+            pointer-events: none;
+        }
+
+        .card-actions {
+            padding: 15px 20px;
+            background-color: var(--card-bg);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .btn-icon {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 6px;
+            transition: color 0.2s, background 0.2s;
+        }
+        .btn-icon:hover {
+            color: var(--danger);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        /* Модальные окна */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 30px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .modal-content h3 {
+            font-family: 'Unbounded', sans-serif;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: var(--accent);
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+            grid-column: 1 / -1;
+        }
+
+        .empty-state h3 {
+            font-family: 'Unbounded', sans-serif;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: var(--text-main);
+        }
+
+        /* Уведомление о защите */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background-color: var(--surface-color);
+            border: 1px solid var(--accent);
+            color: var(--text-main);
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 500;
+            box-shadow: 0 10px 30px var(--accent-glow);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 2000;
+            pointer-events: none;
+        }
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        @media (max-width: 768px) {
+            header { padding: 15px 20px; }
+            .gallery-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">
+            <span>◆</span> SECURE PRESENTATION
+        </div>
+        <div class="header-controls">
+            <button class="btn" id="themeToggle" title="Сменить тему">🌓 Тема</button>
+            <button class="btn" id="adminLoginBtn">🔐 Панель автора</button>
+        </div>
+    </header>
+
+    <main>
+        <div class="project-info">
+            <h1>Презентация вариантов</h1>
+            <p>Конфиденциальные материалы проекта. Копирование и скриншоты заблокированы.</p>
+        </div>
+
+        <div id="gallery" class="gallery-grid">
+            <!-- Сюда динамически добавляются карточки -->
+        </div>
+    </main>
+
+    <!-- Модальное окно входа автора -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <h3>Вход для автора</h3>
+            <div class="form-group">
+                <label>Пароль доступа</label>
+                <input type="password" id="adminPassword" class="form-control" placeholder="Введите пароль...">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn" id="closeLoginModal">Отмена</button>
+                <button class="btn btn-primary" id="submitLogin">Войти</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно добавления работы -->
+    <div class="modal" id="addModal">
+        <div class="modal-content">
+            <h3>Добавить вариант</h3>
+            <div class="form-group">
+                <label>Название варианта (например: Логотип v1 / Баннер)</label>
+                <input type="text" id="workTitle" class="form-control" placeholder="Введите название...">
+            </div>
+            <div class="form-group">
+                <label>Изображение (PNG, JPG, SVG)</label>
+                <input type="file" id="workImage" class="form-control" accept="image/*">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn" id="closeAddModal">Отмена</button>
+                <button class="btn btn-primary" id="submitWork">Добавить</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toastMessage">Скриншоты и копирование запрещены!</div>
+
+    <script>
+        // Защита от скриншотов и сохранения
+        document.addEventListener('contextmenu', e => {
+            e.preventDefault();
+            showToast("Контекстное меню заблокировано в целях защиты авторских прав.");
+        });
+
+        document.addEventListener('keydown', e => {
+            if (
+                e.key === 'PrintScreen' ||
+                (e.ctrlKey && (e.key === 's' || e.key === 'u' || e.key === 'p' || e.key === 'c')) ||
+                e.key === 'F12'
+            ) {
+                e.preventDefault();
+                showToast("Создание скриншотов и копирование защищены!");
+                return false;
+            }
+        });
+
+        function showToast(text) {
+            const toast = document.getElementById('toastMessage');
+            toast.textContent = text;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // Логика приложения
+        let isAdmin = false;
+        let works = JSON.parse(localStorage.getItem('secure_works')) || [
+            { id: 1, title: 'Основной знак логотипа', img: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80' },
+            { id: 2, title: 'Баннер для промо-акции', img: 'https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?w=600&auto=format&fit=crop&q=80' }
+        ];
+
+        // Управление темой
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+        
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        htmlElement.setAttribute('data-theme', savedTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+
+        // Отрисовка галереи
+        function renderGallery() {
+            const gallery = document.getElementById('gallery');
+            gallery.innerHTML = '';
+
+            if (works.length === 0) {
+                gallery.innerHTML = `
+                    <div class="empty-state">
+                        <h3>Пока нет добавленных вариантов</h3>
+                        <p>Войдите как автор, чтобы добавить логотипы и баннеры.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            works.forEach((work, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="card-header">
+                        <span class="card-number">Вариант 0${index + 1}</span>
+                        <span class="card-title" title="${work.title}">${work.title}</span>
+                    </div>
+                    <div class="card-media">
+                        <div class="secure-wrapper">
+                            <div class="secure-overlay"></div>
+                            <img src="${work.img}" alt="${work.title}">
+                        </div>
+                    </div>
+                    ${isAdmin ? `
+                        <div class="card-actions">
+                            <button class="btn-icon" onclick="deleteWork(${work.id})" title="Удалить вариант">
+                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </div>
+                    ` : ''}
+                `;
+                gallery.appendChild(card);
+            });
+
+            // Если вошел админ, добавляем кнопку "Добавить вариант" в конец
+            if (isAdmin) {
+                const addCardBtn = document.createElement('div');
+                addCardBtn.className = 'card';
+                addCardBtn.style.cssText = 'border: 2px dashed var(--border-color); display: flex; align-items: center; justify-content: center; cursor: pointer; min-height: 340px;';
+                addCardBtn.innerHTML = `
+                    <div style="text-align: center; color: var(--accent);">
+                        <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-bottom: 10px;"><path d="M12 4v16m8-8H4"></path></svg>
+                        <div style="font-weight: 600; font-family: 'Unbounded', sans-serif;">Добавить вариант</div>
+                    </div>
+                `;
+                addCardBtn.onclick = () => document.getElementById('addModal').classList.add('active');
+                gallery.appendChild(addCardBtn);
+            }
+        }
+
+        // Авторизация
+        const adminLoginBtn = document.getElementById('adminLoginBtn');
+        const loginModal = document.getElementById('loginModal');
+        const closeLoginModal = document.getElementById('closeLoginModal');
+        const submitLogin = document.getElementById('submitLogin');
+        const adminPassword = document.getElementById('adminPassword');
+
+        adminLoginBtn.addEventListener('click', () => {
+            if (isAdmin) {
+                isAdmin = false;
+                adminLoginBtn.textContent = '🔐 Панель автора';
+                adminLoginBtn.classList.remove('btn-primary');
+                renderGallery();
+                showToast("Вы вышли из режима автора");
+            } else {
+                loginModal.classList.add('active');
+            }
+        });
+
+        closeLoginModal.addEventListener('click', () => loginModal.classList.remove('active'));
+        
+        submitLogin.addEventListener('click', () => {
+            if (adminPassword.value === 'admin123') { // Можешь поменять пароль тут
+                isAdmin = true;
+                loginModal.classList.remove('active');
+                adminPassword.value = '';
+                adminLoginBtn.textContent = '🔓 Выйти из панели';
+                adminLoginBtn.classList.add('btn-primary');
+                renderGallery();
+                showToast("Успешный вход в режим автора!");
+            } else {
+                showToast("Неверный пароль!");
+            }
+        });
+
+        // Добавление работы
+        const addModal = document.getElementById('addModal');
+        const closeAddModal = document.getElementById('closeAddModal');
+        const submitWork = document.getElementById('submitWork');
+        const workTitle = document.getElementById('workTitle');
+        const workImage = document.getElementById('workImage');
+
+        closeAddModal.addEventListener('click', () => addModal.classList.remove('active'));
+
+        submitWork.addEventListener('click', () => {
+            const title = workTitle.value.trim();
+            const file = workImage.files[0];
+
+            if (!title || !file) {
+                showToast("Заполните название и выберите файл!");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const newWork = {
+                    id: Date.now(),
+                    title: title,
+                    img: e.target.result
+                };
+                works.push(newWork);
+                localStorage.setItem('secure_works', JSON.stringify(works));
+                
+                workTitle.value = '';
+                workImage.value = '';
+                addModal.classList.remove('active');
+                renderGallery();
+                showToast("Вариант успешно добавлен!");
+            };
+            reader.readAsDataURL(file);
+        });
+
+        window.deleteWork = function(id) {
+            if (confirm("Удалить этот вариант из презентации?")) {
+                works = works.filter(w => w.id !== id);
+                localStorage.setItem('secure_works', JSON.stringify(works));
+                renderGallery();
+                showToast("Вариант удален");
+            }
+        }
+
+        // Первичный запуск
+        renderGallery();
+    </script>
+</body>
+</html>
