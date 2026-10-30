@@ -517,6 +517,19 @@
                 addCardBtn.onclick = () => document.getElementById('addModal').classList.add('active');
                 gallery.appendChild(addCardBtn);
             }
+            if (isAdmin) {
+                const addCardBtn = document.createElement('div');
+                addCardBtn.className = 'card';
+                addCardBtn.style.cssText = 'border: 2px dashed var(--border-color); display: flex; align-items: center; justify-content: center; cursor: pointer; min-height: 340px;';
+                addCardBtn.innerHTML = `
+                    <div style="text-align: center; color: var(--accent);">
+                        <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-bottom: 10px;"><path d="M12 4v16m8-8H4"></path></svg>
+                        <div style="font-weight: 600; font-family: 'Unbounded', sans-serif;">Добавить вариант</div>
+                    </div>
+                `;
+                addCardBtn.onclick = () => document.getElementById('addModal').classList.add('active');
+                gallery.appendChild(addCardBtn);
+            }
         }
 
         // Авторизация
