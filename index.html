@@ -55,7 +55,6 @@
             transition: background-color 0.3s, color 0.3s;
         }
 
-        /* Защитный оверлей поверх картинок */
         .secure-wrapper {
             position: relative;
             width: 100%;
@@ -129,6 +128,11 @@
         .btn-primary:hover {
             background-color: var(--accent-hover);
             border-color: var(--accent-hover);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
         main {
@@ -248,7 +252,6 @@
             background: rgba(239, 68, 68, 0.1);
         }
 
-        /* Модальные окна */
         .modal {
             display: none;
             position: fixed;
@@ -273,6 +276,8 @@
             width: 100%;
             max-width: 450px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .modal-content h3 {
@@ -314,6 +319,7 @@
             justify-content: flex-end;
             gap: 12px;
             margin-top: 25px;
+            flex-wrap: wrap;
         }
 
         .empty-state {
@@ -330,7 +336,6 @@
             color: var(--text-main);
         }
 
-        /* Уведомление о защите */
         .toast {
             position: fixed;
             bottom: 30px;
@@ -346,9 +351,55 @@
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             z-index: 2000;
             pointer-events: none;
+            max-width: 90vw;
+            text-align: center;
         }
         .toast.show {
             transform: translateX(-50%) translateY(0);
+        }
+
+        /* Панель администратора */
+        .admin-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+            display: none;
+        }
+        .admin-panel.active {
+            display: block;
+        }
+        .admin-panel h2 {
+            font-family: 'Unbounded', sans-serif;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+        .admin-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .link-box {
+            flex: 1;
+            min-width: 250px;
+            padding: 10px 14px;
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            color: var(--accent);
+            word-break: break-all;
+            user-select: text !important;
+            -webkit-user-select: text !important;
+        }
+        .hint {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 10px;
+            line-height: 1.5;
         }
 
         @media (max-width: 768px) {
@@ -370,6 +421,26 @@
     </header>
 
     <main>
+        <!-- Панель администратора -->
+        <div class="admin-panel" id="adminPanel">
+            <h2>Панель автора</h2>
+            <div class="admin-row">
+                <span style="font-weight:600; font-size:0.9rem;">Ссылка для заказчика:</span>
+                <div class="link-box" id="shareLink">—</div>
+                <button class="btn" id="copyLinkBtn">📋 Скопировать</button>
+            </div>
+            <div class="admin-row">
+                <button class="btn btn-primary" id="downloadHtmlBtn">⬇️ Скачать HTML для заказчика</button>
+                <button class="btn" id="clearWorksBtn">🗑️ Очистить все работы</button>
+            </div>
+            <p class="hint">
+                1. Добавьте работы через кнопку «Добавить вариант» в галерее.<br>
+                2. Нажмите «Скачать HTML для заказчика» — получите готовый файл с вшитыми работами.<br>
+                3. Загрузите этот файл на GitHub Pages (замените <code>index.html</code>).<br>
+                4. Ссылка для заказчика — та, что показана выше (после публикации).
+            </p>
+        </div>
+
         <div class="project-info">
             <h1>Презентация вариантов</h1>
             <p>Конфиденциальные материалы проекта. Копирование и скриншоты заблокированы.</p>
@@ -399,14 +470,21 @@
     <div class="modal" id="addModal">
         <div class="modal-content">
             <h3>Добавить вариант</h3>
+
             <div class="form-group">
-                <label>Название варианта (например: Логотип v1 / Баннер)</label>
-                <input type="text" id="workTitle" class="form-control" placeholder="Введите название...">
+                <label>Выберите папку с вариантами (названия возьмутся из имён файлов)</label>
+                <input type="file" id="workFolder" class="form-control" webkitdirectory directory multiple accept="image/*">
             </div>
+
             <div class="form-group">
-                <label>Изображение (PNG, JPG, SVG)</label>
-                <input type="file" id="workImage" class="form-control" accept="image/*">
+                <label>…или выберите отдельные изображения</label>
+                <input type="file" id="workImage" class="form-control" accept="image/*" multiple>
             </div>
+
+            <p style="font-size:0.8rem; color: var(--text-muted); margin-top:-10px;">
+                Имя файла без расширения станет названием варианта. Сортировка — по имени файла.
+            </p>
+
             <div class="modal-buttons">
                 <button class="btn" id="closeAddModal">Отмена</button>
                 <button class="btn btn-primary" id="submitWork">Добавить</button>
@@ -416,8 +494,14 @@
 
     <div class="toast" id="toastMessage">Скриншоты и копирование запрещены!</div>
 
+    <!-- ====== ВШИТЫЕ РАБОТЫ ====== -->
+    <!-- Этот блок автоматически обновляется кнопкой «Скачать HTML для заказчика» -->
+    <script id="embedded-works" type="application/json">
+[]
+    </script>
+
     <script>
-        // Защита от скриншотов и сохранения
+        // ====== Защита от скриншотов и сохранения ======
         document.addEventListener('contextmenu', e => {
             e.preventDefault();
             showToast("Контекстное меню заблокировано в целях защиты авторских прав.");
@@ -442,17 +526,36 @@
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        // Логика приложения
-        let isAdmin = false;
-        let works = JSON.parse(localStorage.getItem('secure_works')) || [
-            { id: 1, title: 'Основной знак логотипа', img: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80' },
-            { id: 2, title: 'Баннер для промо-акции', img: 'https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?w=600&auto=format&fit=crop&q=80' }
-        ];
+        // ====== ПАРОЛЬ АДМИНА ======
+        const ADMIN_PASSWORD = 'admin123'; // поменяйте при желании
 
-        // Управление темой
+        // ====== ДАННЫЕ ======
+        // 1) Сначала берём вшитые работы из блока embedded-works (это то, что увидит заказчик)
+        // 2) Если их нет — берём из localStorage (ваши локальные правки)
+        // 3) Если и там пусто — дефолтные картинки
+        let embeddedWorks = [];
+        try {
+            const embeddedRaw = document.getElementById('embedded-works').textContent.trim();
+            if (embeddedRaw) embeddedWorks = JSON.parse(embeddedRaw);
+        } catch (e) {
+            console.warn('Не удалось прочитать вшитые работы', e);
+        }
+
+        let works;
+        if (Array.isArray(embeddedWorks) && embeddedWorks.length > 0) {
+            works = embeddedWorks;
+        } else {
+            works = JSON.parse(localStorage.getItem('secure_works')) || [
+                { id: 1, title: 'Основной знак логотипа', img: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80' },
+                { id: 2, title: 'Баннер для промо-акции', img: 'https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?w=600&auto=format&fit=crop&q=80' }
+            ];
+        }
+
+        let isAdmin = false;
+
+        // ====== ТЕМА ======
         const themeToggle = document.getElementById('themeToggle');
         const htmlElement = document.documentElement;
-        
         const savedTheme = localStorage.getItem('theme') || 'dark';
         htmlElement.setAttribute('data-theme', savedTheme);
 
@@ -463,7 +566,7 @@
             localStorage.setItem('theme', newTheme);
         });
 
-        // Отрисовка галереи
+        // ====== ОТРИСОВКА ГАЛЕРЕИ ======
         function renderGallery() {
             const gallery = document.getElementById('gallery');
             gallery.innerHTML = '';
@@ -472,10 +575,9 @@
                 gallery.innerHTML = `
                     <div class="empty-state">
                         <h3>Пока нет добавленных вариантов</h3>
-                        <p>Войдите как автор, чтобы добавить логотипы и баннеры.</p>
+                        <p>${isAdmin ? 'Нажмите «Добавить вариант», чтобы добавить первый.' : 'Войдите как автор, чтобы добавить логотипы и баннеры.'}</p>
                     </div>
                 `;
-                return;
             }
 
             works.forEach((work, index) => {
@@ -483,7 +585,7 @@
                 card.className = 'card';
                 card.innerHTML = `
                     <div class="card-header">
-                        <span class="card-number">Вариант 0${index + 1}</span>
+                        <span class="card-number">Вариант ${String(index + 1).padStart(2, '0')}</span>
                         <span class="card-title" title="${work.title}">${work.title}</span>
                     </div>
                     <div class="card-media">
@@ -503,7 +605,6 @@
                 gallery.appendChild(card);
             });
 
-            // Если вошел админ, добавляем кнопку "Добавить вариант" в конец
             if (isAdmin) {
                 const addCardBtn = document.createElement('div');
                 addCardBtn.className = 'card';
@@ -517,33 +618,29 @@
                 addCardBtn.onclick = () => document.getElementById('addModal').classList.add('active');
                 gallery.appendChild(addCardBtn);
             }
-            if (isAdmin) {
-                const addCardBtn = document.createElement('div');
-                addCardBtn.className = 'card';
-                addCardBtn.style.cssText = 'border: 2px dashed var(--border-color); display: flex; align-items: center; justify-content: center; cursor: pointer; min-height: 340px;';
-                addCardBtn.innerHTML = `
-                    <div style="text-align: center; color: var(--accent);">
-                        <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-bottom: 10px;"><path d="M12 4v16m8-8H4"></path></svg>
-                        <div style="font-weight: 600; font-family: 'Unbounded', sans-serif;">Добавить вариант</div>
-                    </div>
-                `;
-                addCardBtn.onclick = () => document.getElementById('addModal').classList.add('active');
-                gallery.appendChild(addCardBtn);
+
+            // Сохраняем локально, чтобы ваши правки не терялись между перезагрузками
+            try {
+                localStorage.setItem('secure_works', JSON.stringify(works));
+            } catch (e) {
+                console.warn('localStorage переполнен, локально не сохранено');
             }
         }
 
-        // Авторизация
+        // ====== АВТОРИЗАЦИЯ ======
         const adminLoginBtn = document.getElementById('adminLoginBtn');
         const loginModal = document.getElementById('loginModal');
         const closeLoginModal = document.getElementById('closeLoginModal');
         const submitLogin = document.getElementById('submitLogin');
         const adminPassword = document.getElementById('adminPassword');
+        const adminPanel = document.getElementById('adminPanel');
 
         adminLoginBtn.addEventListener('click', () => {
             if (isAdmin) {
                 isAdmin = false;
                 adminLoginBtn.textContent = '🔐 Панель автора';
                 adminLoginBtn.classList.remove('btn-primary');
+                adminPanel.classList.remove('active');
                 renderGallery();
                 showToast("Вы вышли из режима автора");
             } else {
@@ -552,14 +649,16 @@
         });
 
         closeLoginModal.addEventListener('click', () => loginModal.classList.remove('active'));
-        
+
         submitLogin.addEventListener('click', () => {
-            if (adminPassword.value === 'nastya2010') { // Можешь поменять пароль тут
+            if (adminPassword.value === ADMIN_PASSWORD) {
                 isAdmin = true;
                 loginModal.classList.remove('active');
                 adminPassword.value = '';
                 adminLoginBtn.textContent = '🔓 Выйти из панели';
                 adminLoginBtn.classList.add('btn-primary');
+                adminPanel.classList.add('active');
+                updateShareLink();
                 renderGallery();
                 showToast("Успешный вход в режим автора!");
             } else {
@@ -567,53 +666,153 @@
             }
         });
 
-        // Добавление работы
+        // ====== ССЫЛКА ДЛЯ ЗАКАЗЧИКА ======
+        function updateShareLink() {
+            const linkBox = document.getElementById('shareLink');
+            const url = window.location.href.split('?')[0].split('#')[0];
+            if (url.startsWith('file://')) {
+                linkBox.textContent = 'Локальный файл. Загрузите на GitHub Pages — ссылка появится здесь.';
+            } else {
+                linkBox.textContent = url;
+            }
+        }
+
+        document.getElementById('copyLinkBtn').addEventListener('click', async () => {
+            const text = document.getElementById('shareLink').textContent;
+            if (!text || text.startsWith('Локальный файл')) {
+                showToast('Сначала опубликуйте файл на GitHub Pages');
+                return;
+            }
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast('Ссылка скопирована!');
+            } catch (e) {
+                showToast('Не удалось скопировать. Выделите вручную.');
+            }
+        });
+
+        // ====== ДОБАВЛЕНИЕ РАБОТ ======
         const addModal = document.getElementById('addModal');
         const closeAddModal = document.getElementById('closeAddModal');
         const submitWork = document.getElementById('submitWork');
-        const workTitle = document.getElementById('workTitle');
+        const workFolder = document.getElementById('workFolder');
         const workImage = document.getElementById('workImage');
 
         closeAddModal.addEventListener('click', () => addModal.classList.remove('active'));
 
-        submitWork.addEventListener('click', () => {
-            const title = workTitle.value.trim();
-            const file = workImage.files[0];
+        function readFileAsDataURL(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
 
-            if (!title || !file) {
-                showToast("Заполните название и выберите файл!");
+        function isImage(file) {
+            return (file.type && file.type.startsWith('image/')) ||
+                /\.(png|jpe?g|gif|webp|svg|bmp)$/i.test(file.name);
+        }
+
+        function titleFromFileName(name) {
+            return name.replace(/\.[^/.]+$/, '');
+        }
+
+        submitWork.addEventListener('click', async () => {
+            let files = [];
+            if (workFolder.files && workFolder.files.length > 0) {
+                files = Array.from(workFolder.files).filter(isImage);
+            } else if (workImage.files && workImage.files.length > 0) {
+                files = Array.from(workImage.files).filter(isImage);
+            }
+
+            if (files.length === 0) {
+                showToast("Выберите папку или изображения!");
                 return;
             }
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const newWork = {
-                    id: Date.now(),
-                    title: title,
-                    img: e.target.result
-                };
-                works.push(newWork);
-                localStorage.setItem('secure_works', JSON.stringify(works));
-                
-                workTitle.value = '';
-                workImage.value = '';
-                addModal.classList.remove('active');
-                renderGallery();
-                showToast("Вариант успешно добавлен!");
-            };
-            reader.readAsDataURL(file);
+            files.sort((f1, f2) =>
+                f1.name.localeCompare(f2.name, undefined, { numeric: true, sensitivity: 'base' })
+            );
+
+            submitWork.disabled = true;
+            const oldText = submitWork.textContent;
+            submitWork.textContent = 'Загрузка...';
+
+            let added = 0;
+            for (const file of files) {
+                try {
+                    const dataUrl = await readFileAsDataURL(file);
+                    works.push({
+                        id: Date.now() + Math.random(),
+                        title: titleFromFileName(file.name),
+                        img: dataUrl
+                    });
+                    added++;
+                } catch (err) {
+                    console.error('Ошибка чтения файла', file.name, err);
+                }
+            }
+
+            workFolder.value = '';
+            workImage.value = '';
+            addModal.classList.remove('active');
+            renderGallery();
+
+            submitWork.disabled = false;
+            submitWork.textContent = oldText;
+
+            showToast(`Добавлено вариантов: ${added}`);
         });
 
         window.deleteWork = function(id) {
             if (confirm("Удалить этот вариант из презентации?")) {
                 works = works.filter(w => w.id !== id);
-                localStorage.setItem('secure_works', JSON.stringify(works));
                 renderGallery();
                 showToast("Вариант удален");
             }
-        }
+        };
 
-        // Первичный запуск
+        // ====== СКАЧАТЬ HTML ДЛЯ ЗАКАЗЧИКА ======
+        document.getElementById('downloadHtmlBtn').addEventListener('click', () => {
+            // Берём текущий HTML документа
+            const html = document.documentElement.outerHTML;
+
+            // Формируем JSON с работами (без лишнего, чтобы файл не разбухал сильнее нужного)
+            const worksJson = JSON.stringify(works);
+
+            // Заменяем содержимое блока embedded-works на актуальный JSON
+            // Ищем блок по id с учётом возможных пробелов/переносов
+            const updatedHtml = html.replace(
+                /(<script id="embedded-works" type="application\/json">)[\s\S]*?(<\/script>)/,
+                `$1\n${worksJson}\n$2`
+            );
+
+            // Создаём файл и скачиваем
+            const blob = new Blob([updatedHtml], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'index.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showToast('Файл index.html скачан. Загрузите его на GitHub Pages.');
+        });
+
+        // ====== ОЧИСТИТЬ ВСЁ ======
+        document.getElementById('clearWorksBtn').addEventListener('click', () => {
+            if (confirm('Удалить ВСЕ работы? Это действие нельзя отменить.')) {
+                works = [];
+                localStorage.removeItem('secure_works');
+                renderGallery();
+                showToast('Все работы удалены');
+            }
+        });
+
+        // ====== СТАРТ ======
         renderGallery();
     </script>
 </body>
